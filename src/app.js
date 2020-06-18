@@ -9,6 +9,7 @@ app.use(express.json());
 app.use(cors());
 
 const repositories = [];
+const likesArr = [];
 
 app.get("/repositories", (request, response) => {
   return response.json(repositories);
@@ -16,7 +17,6 @@ app.get("/repositories", (request, response) => {
 
 app.post("/repositories", (request, response) => {
   const { title, url, techs } = request.body;
-  
   const repository = {
     id: uuid(),
     title,
@@ -33,6 +33,7 @@ app.post("/repositories", (request, response) => {
 app.put("/repositories/:id", (request, response) => {
   const { id } = request.params;
   const { title, url, techs } = request.body;
+  let count = 0;
 
   const repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
@@ -40,11 +41,18 @@ app.put("/repositories/:id", (request, response) => {
     return response.status(400).send();
   }
 
+  likesArr.map(like => {
+    like.id === id
+      ? count++
+      : count
+  });
+
   const repository = {
     id,
     title,
     url,
-    techs
+    techs,
+    likes: count
   };
 
   repositories[repositoryIndex] = repository;
@@ -70,6 +78,7 @@ app.delete("/repositories/:id", (request, response) => {
 
 app.post("/repositories/:id/like", (request, response) => {
   const { id } = request.params;
+  let count = 0;
 
   const repositoryIndex = repositories.findIndex(repository => repository.id === id);
 
@@ -77,14 +86,22 @@ app.post("/repositories/:id/like", (request, response) => {
     return response.status(400).send();
   }
 
-  const repository = {
-    id,
-    likes: likes++
+  const like = {
+    idLike: uuid(),
+    id
   };
 
-  repositories[repositoryIndex] = repository;
+  likesArr.push(like);
 
-  return response.json(repository);
+  likesArr.map(like => {
+    like.id === id
+      ? count++
+      : count
+  });
+
+  const likes = { likes: count };
+
+  return response.json(likes);
 });
 
 module.exports = app;
